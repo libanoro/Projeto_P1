@@ -12,7 +12,7 @@ from sklearn.metrics import accuracy_score
 # ==========================================
 st.set_page_config(
     page_title="Projeto Integrador 4",
-    page_icon="🎻",
+    page_icon="💀",
     layout="wide"
 )
 
@@ -211,7 +211,7 @@ def predizer_risco_aluno(dados_aluno):
 # ==========================================
 # PAINEL PRINCIPAL (ABA BI OCULTA DA INTERFACE)
 # ==========================================
-st.title("🎻 Projeto Integrador 4 - Gestão Musical")
+st.title("💀 Projeto Integrador 4 - Gestão Musical 💀")
 
 tab_financas, tab_alunos, tab_agenda, tab_predicao = st.tabs([
     "💰 Financeiro",
