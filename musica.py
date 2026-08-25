@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.express as px
-from datetime import date, time
+from datetime import date, time, timedelta
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
@@ -58,6 +58,8 @@ with st.sidebar:
 # ==========================================
 # INICIALIZAÇÃO DE DADOS
 # ==========================================
+hoje = date.today()
+
 if "alunos" not in st.session_state:
     st.session_state.alunos = [
         {
@@ -70,8 +72,12 @@ if "alunos" not in st.session_state:
             "status_pagamento": "Pago",
             "aulas_totais": 16,
             "aulas_feitas": 12,
+            "historico_aulas": [
+                {"id": i + 1, "data": str(hoje - timedelta(days=(12 - i) * 7))}
+                for i in range(12)
+            ],
             "tempo_matricula": 8,
-            "frequencia": 90.0,
+            "frequencia": 75.0,
             "horas_estudo": 4.5,
             "evolucao": 8.0
         },
@@ -85,8 +91,12 @@ if "alunos" not in st.session_state:
             "status_pagamento": "Inadimplente",
             "aulas_totais": 16,
             "aulas_feitas": 4,
+            "historico_aulas": [
+                {"id": i + 1, "data": str(hoje - timedelta(days=(4 - i) * 7))}
+                for i in range(4)
+            ],
             "tempo_matricula": 3,
-            "frequencia": 50.0,
+            "frequencia": 25.0,
             "horas_estudo": 1.0,
             "evolucao": 4.0
         },
@@ -100,8 +110,12 @@ if "alunos" not in st.session_state:
             "status_pagamento": "Pago",
             "aulas_totais": 20,
             "aulas_feitas": 18,
+            "historico_aulas": [
+                {"id": i + 1, "data": str(hoje - timedelta(days=(18 - i) * 7))}
+                for i in range(18)
+            ],
             "tempo_matricula": 14,
-            "frequencia": 95.0,
+            "frequencia": 90.0,
             "horas_estudo": 6.0,
             "evolucao": 9.2
         },
@@ -115,8 +129,12 @@ if "alunos" not in st.session_state:
             "status_pagamento": "Pendente",
             "aulas_totais": 12,
             "aulas_feitas": 5,
+            "historico_aulas": [
+                {"id": i + 1, "data": str(hoje - timedelta(days=(5 - i) * 7))}
+                for i in range(5)
+            ],
             "tempo_matricula": 2,
-            "frequencia": 68.0,
+            "frequencia": 41.7,
             "horas_estudo": 2.0,
             "evolucao": 5.5
         }
@@ -124,12 +142,9 @@ if "alunos" not in st.session_state:
 
 if "agenda" not in st.session_state:
     st.session_state.agenda = [
-        {"id": 1, "aluno": "Mariana Souza", "instrumento": "Violino", "data": str(date.today()), "horario": "14:00",
-         "status": "Agendada"},
-        {"id": 2, "aluno": "Lucas Silveira", "instrumento": "Piano", "data": str(date.today()), "horario": "15:30",
-         "status": "Agendada"},
-        {"id": 3, "aluno": "Beatriz Lima", "instrumento": "Piano", "data": str(date.today()), "horario": "17:00",
-         "status": "Realizada"}
+        {"id": 1, "aluno": "Mariana Souza", "instrumento": "Violino", "data": str(hoje), "horario": "14:00", "status": "Agendada"},
+        {"id": 2, "aluno": "Lucas Silveira", "instrumento": "Piano", "data": str(hoje), "horario": "15:30", "status": "Agendada"},
+        {"id": 3, "aluno": "Beatriz Lima", "instrumento": "Piano", "data": str(hoje), "horario": "17:00", "status": "Realizada"}
     ]
 
 # ==========================================
@@ -141,8 +156,7 @@ def inicializar_modelo_ia():
     n_samples = 1200
 
     instrumentos = np.random.choice(["Violino", "Piano"], size=n_samples, p=[0.48, 0.52])
-    faixas_etarias = np.random.choice(["Infantil (6-12)", "Jovem (13-17)", "Adulto (18-59)", "Sênior (60+)"],
-                                      size=n_samples)
+    faixas_etarias = np.random.choice(["Infantil (6-12)", "Jovem (13-17)", "Adulto (18-59)", "Sênior (60+)"], size=n_samples)
     tempo_matricula = np.random.randint(1, 48, size=n_samples)
     taxa_frequencia = np.random.uniform(40, 100, size=n_samples)
     aulas_canceladas_3m = np.random.poisson(lam=1.8, size=n_samples)
@@ -207,6 +221,8 @@ tab_financas, tab_alunos, tab_agenda, tab_predicao, tab_bi = st.tabs([
 ])
 
 # ----------------------------------------------------
+# ABA FINANCEIRO
+# ----------------------------------------------------
 with tab_financas:
     st.subheader("Controle de Caixa e Inadimplência")
     df_cadastrados = pd.DataFrame(st.session_state.alunos)
@@ -215,16 +231,13 @@ with tab_financas:
         total_previsto = df_cadastrados["valor_mensalidade"].sum()
         total_pago = df_cadastrados[df_cadastrados["status_pagamento"] == "Pago"]["valor_mensalidade"].sum()
         total_pendente = df_cadastrados[df_cadastrados["status_pagamento"] == "Pendente"]["valor_mensalidade"].sum()
-        total_inadimplente = df_cadastrados[df_cadastrados["status_pagamento"] == "Inadimplente"][
-            "valor_mensalidade"].sum()
+        total_inadimplente = df_cadastrados[df_cadastrados["status_pagamento"] == "Inadimplente"]["valor_mensalidade"].sum()
         total_falta = total_pendente + total_inadimplente
 
         c1, c2, c3, c4 = st.columns(4)
         c1.metric("Faturamento Previsto", f"R$ {total_previsto:,.2f}")
-        c2.metric("Valor Entrado (Pago)", f"R$ {total_pago:,.2f}",
-                  delta=f"{(total_pago / total_previsto) * 100:.1f}% recebido")
-        c3.metric("Valor em Aberto (Falta)", f"R$ {total_falta:,.2f}",
-                  delta=f"-{(total_falta / total_previsto) * 100:.1f}%", delta_color="inverse")
+        c2.metric("Valor Entrado (Pago)", f"R$ {total_pago:,.2f}", delta=f"{(total_pago / total_previsto) * 100:.1f}% recebido")
+        c3.metric("Valor em Aberto (Falta)", f"R$ {total_falta:,.2f}", delta=f"-{(total_falta / total_previsto) * 100:.1f}%", delta_color="inverse")
         c4.metric("Inadimplência Crítica", f"R$ {total_inadimplente:,.2f}", delta_color="inverse")
 
         st.divider()
@@ -253,6 +266,8 @@ with tab_financas:
             st.plotly_chart(fig_inst, use_container_width=True)
 
 # ----------------------------------------------------
+# ABA ALUNOS & PRESENÇA COM HISTÓRICO COMPLETO
+# ----------------------------------------------------
 with tab_alunos:
     st.subheader("Cadastro e Registro de Presença")
 
@@ -263,28 +278,28 @@ with tab_alunos:
                 nome = st.text_input("Nome do Aluno *")
                 endereco = st.text_input("Endereço *")
                 instrumento = st.selectbox("Instrumento", ["Violino", "Piano"])
-                faixa_etaria = st.selectbox("Faixa Etária",
-                                            ["Infantil (6-12)", "Jovem (13-17)", "Adulto (18-59)", "Sênior (60+)"])
+                faixa_etaria = st.selectbox("Faixa Etária", ["Infantil (6-12)", "Jovem (13-17)", "Adulto (18-59)", "Sênior (60+)"])
 
             with col_a2:
-                mensalidade = st.number_input("Valor da Mensalidade (R$)", min_value=100.0, max_value=2000.0,
-                                              value=350.0, step=50.0)
+                mensalidade = st.number_input("Valor da Mensalidade (R$)", min_value=100.0, max_value=2000.0, value=350.0, step=50.0)
                 status_pag = st.selectbox("Status do Pagamento", ["Pago", "Pendente", "Inadimplente"])
                 aulas_totais = st.number_input("Total de Aulas do Pacote", min_value=1, max_value=100, value=16)
 
             with col_a3:
                 aulas_feitas = st.number_input("Aulas Concluídas", min_value=0, max_value=100, value=0)
                 tempo_mat = st.number_input("Tempo de Matrícula (Meses)", min_value=1, max_value=60, value=1)
-                horas_estudo = st.number_input("Estudo Semanal em Casa (Horas)", min_value=0.0, max_value=20.0,
-                                               value=2.5, step=0.5)
+                horas_estudo = st.number_input("Estudo Semanal em Casa (Horas)", min_value=0.0, max_value=20.0, value=2.5, step=0.5)
 
             cadastrar = st.form_submit_button("Salvar Registro")
 
             if cadastrar:
                 if nome.strip() and endereco.strip():
                     novo_id = max([a["id"] for a in st.session_state.alunos], default=0) + 1
-                    freq_calc = 100.0 if aulas_totais == 0 else round(min(100.0, (aulas_feitas / aulas_totais) * 100),
-                                                                      1)
+                    freq_calc = 100.0 if aulas_totais == 0 else round(min(100.0, (int(aulas_feitas) / int(aulas_totais)) * 100), 1)
+                    
+                    # Gera histórico inicial caso o aluno já entre com aulas feitas
+                    hist_inicial = [{"id": i + 1, "data": str(hoje)} for i in range(int(aulas_feitas))]
+
                     st.session_state.alunos.append({
                         "id": novo_id,
                         "nome": nome.strip(),
@@ -295,6 +310,7 @@ with tab_alunos:
                         "status_pagamento": status_pag,
                         "aulas_totais": int(aulas_totais),
                         "aulas_feitas": int(aulas_feitas),
+                        "historico_aulas": hist_inicial,
                         "tempo_matricula": int(tempo_mat),
                         "frequencia": float(freq_calc),
                         "horas_estudo": float(horas_estudo),
@@ -307,11 +323,17 @@ with tab_alunos:
 
     st.markdown("### 📋 Ficha de Alunos e Progresso das Aulas")
     for aluno in st.session_state.alunos:
+        if "historico_aulas" not in aluno:
+            aluno["historico_aulas"] = [{"id": i + 1, "data": str(hoje)} for i in range(aluno.get("aulas_feitas", 0))]
+
+        # Sincroniza aulas feitas com o tamanho real do histórico
+        aluno["aulas_feitas"] = len(aluno["historico_aulas"])
         aulas_a_fazer = max(0, aluno["aulas_totais"] - aluno["aulas_feitas"])
         pct_concluido = min(1.0, aluno["aulas_feitas"] / aluno["aulas_totais"]) if aluno["aulas_totais"] > 0 else 0.0
+        aluno["frequencia"] = round(min(100.0, (aluno["aulas_feitas"] / aluno["aulas_totais"]) * 100), 1) if aluno["aulas_totais"] > 0 else 100.0
 
-        atraso_num = 3 if aluno["status_pagamento"] == "Inadimplente" else (
-            1 if aluno["status_pagamento"] == "Pendente" else 0)
+        # Predição de risco direta no card
+        atraso_num = 3 if aluno["status_pagamento"] == "Inadimplente" else (1 if aluno["status_pagamento"] == "Pendente" else 0)
         dados_inferencia = {
             "Tempo_Matricula_Meses": aluno["tempo_matricula"],
             "Taxa_Frequencia_Pct": aluno["frequencia"],
@@ -325,7 +347,7 @@ with tab_alunos:
         risco_aluno = predizer_risco_aluno(dados_inferencia)
 
         with st.container():
-            c_info1, c_info2, c_info3, c_info4 = st.columns([3, 2, 2, 2])
+            c_info1, c_info2, c_info3, c_info4 = st.columns([3, 2, 2.5, 2])
             with c_info1:
                 st.markdown(f"**{aluno['nome']}** (`{aluno['instrumento']}`)")
                 st.caption(f"📍 {aluno['endereco']} | {aluno['faixa_etaria']}")
@@ -350,21 +372,79 @@ with tab_alunos:
                     st.rerun()
 
             with c_info3:
-                st.write(f"**Aulas:** {aluno['aulas_feitas']} feitas | **{aulas_a_fazer} a fazer**")
+                st.write(f"**Aulas:** {aluno['aulas_feitas']} feitas / {aluno['aulas_totais']} total | **{aulas_a_fazer} a fazer**")
                 st.progress(pct_concluido)
 
             with c_info4:
-                if st.button("➕ Confirmar Presença", key=f"pres_{aluno['id']}"):
+                if st.button("➕ Presença Hoje", key=f"pres_hoje_{aluno['id']}"):
                     if aluno["aulas_feitas"] < aluno["aulas_totais"]:
-                        aluno["aulas_feitas"] += 1
-                        aluno["frequencia"] = round(min(100.0, (aluno["aulas_feitas"] / aluno["aulas_totais"]) * 100),
-                                                    1)
+                        novo_id_h = max([h["id"] for h in aluno["historico_aulas"]], default=0) + 1
+                        aluno["historico_aulas"].append({"id": novo_id_h, "data": str(hoje)})
+                        st.success("Presença de hoje confirmada!")
                         st.rerun()
                     else:
                         st.info("Pacote de aulas concluído.")
 
+            # ==========================================
+            # SEÇÃO: HISTÓRICO, EDIÇÃO, EXCLUSÃO E AGENDAMENTO MANUAL DE DIAS
+            # ==========================================
+            with st.expander(f"📅 Ver e Gerenciar Histórico de Aulas ({len(aluno['historico_aulas'])} registradas)"):
+                st.markdown("##### 📌 Marcar Aula em Outro Dia")
+                col_n1, col_n2 = st.columns([3, 1])
+                with col_n1:
+                    data_marcar = st.date_input(
+                        "Selecione a data da aula realizada",
+                        value=hoje,
+                        key=f"data_marcar_{aluno['id']}"
+                    )
+                with col_n2:
+                    st.write("")
+                    st.write("")
+                    if st.button("➕ Registrar Aula na Data", key=f"btn_marcar_data_{aluno['id']}"):
+                        if aluno["aulas_feitas"] < aluno["aulas_totais"]:
+                            novo_id_h = max([h["id"] for h in aluno["historico_aulas"]], default=0) + 1
+                            aluno["historico_aulas"].append({"id": novo_id_h, "data": str(data_marcar)})
+                            st.success(f"Aula em {data_marcar.strftime('%d/%m/%Y')} registrada!")
+                            st.rerun()
+                        else:
+                            st.warning("Limite total de aulas já atingido.")
+
+                st.divider()
+                st.markdown("##### 📋 Dias Realizados (Editar ou Excluir)")
+
+                if aluno["historico_aulas"]:
+                    for idx, aula_reg in enumerate(aluno["historico_aulas"]):
+                        col_h1, col_h2, col_h3, col_h4 = st.columns([1, 2, 1.2, 1])
+                        with col_h1:
+                            st.write(f"**Aula #{idx+1}**")
+                        with col_h2:
+                            try:
+                                dt_atual = date.fromisoformat(aula_reg["data"])
+                            except Exception:
+                                dt_atual = hoje
+                            nova_data_edit = st.date_input(
+                                f"Data Aula {aula_reg['id']}",
+                                value=dt_atual,
+                                key=f"dt_edit_{aluno['id']}_{aula_reg['id']}",
+                                label_visibility="collapsed"
+                            )
+                        with col_h3:
+                            if st.button("💾 Alterar", key=f"btn_alt_{aluno['id']}_{aula_reg['id']}"):
+                                aula_reg["data"] = str(nova_data_edit)
+                                st.success("Data alterada com sucesso!")
+                                st.rerun()
+                        with col_h4:
+                            if st.button("🗑️ Excluir", key=f"btn_del_{aluno['id']}_{aula_reg['id']}"):
+                                aluno["historico_aulas"].remove(aula_reg)
+                                st.warning("Aula removida.")
+                                st.rerun()
+                else:
+                    st.info("Nenhuma aula realizada até o momento.")
+
             st.divider()
 
+# ----------------------------------------------------
+# ABA AGENDAMENTOS
 # ----------------------------------------------------
 with tab_agenda:
     st.subheader("Agendamento de Aulas")
@@ -375,7 +455,7 @@ with tab_agenda:
         lista_nomes = [a["nome"] for a in st.session_state.alunos]
         if lista_nomes:
             aluno_agenda = st.selectbox("Aluno", lista_nomes, key="ag_aluno")
-            data_sel = st.date_input("Data da Aula", min_value=date.today(), key="ag_data")
+            data_sel = st.date_input("Data da Aula", min_value=hoje, key="ag_data")
             hora_sel = st.time_input("Horário", value=time(14, 0), key="ag_hora")
 
             if st.button("Confirmar Agendamento", key="btn_confirmar_ag"):
@@ -402,52 +482,49 @@ with tab_agenda:
             if ag["status"] == "Agendada":
                 if ca3.button("Marcar Realizada", key=f"btn_done_{ag['id']}"):
                     ag["status"] = "Realizada"
+                    # Ao marcar como realizada, registra a data no histórico do aluno
                     for al in st.session_state.alunos:
                         if al["nome"] == ag["aluno"] and al["aulas_feitas"] < al["aulas_totais"]:
-                            al["aulas_feitas"] += 1
-                            al["frequencia"] = round(min(100.0, (al["aulas_feitas"] / al["aulas_totais"]) * 100), 1)
+                            if "historico_aulas" not in al:
+                                al["historico_aulas"] = []
+                            novo_id_h = max([h["id"] for h in al["historico_aulas"]], default=0) + 1
+                            al["historico_aulas"].append({"id": novo_id_h, "data": str(ag["data"])})
                     st.rerun()
             else:
                 ca3.success(" Concluída")
             st.divider()
 
 # ----------------------------------------------------
+# ABA PREDIÇÃO IA
+# ----------------------------------------------------
 with tab_predicao:
     st.subheader("Análise Preditiva de Risco de Evasão")
-    origem = st.radio("Selecione o modo de análise:", ["Carregar Aluno Cadastrado", "Simulação Manual"],
-                      horizontal=True)
+    origem = st.radio("Selecione o modo de análise:", ["Carregar Aluno Cadastrado", "Simulação Manual"], horizontal=True)
 
     if origem == "Carregar Aluno Cadastrado" and st.session_state.alunos:
-        aluno_nome = st.selectbox("Escolha o Aluno Cadastrado", [a["nome"] for a in st.session_state.alunos],
-                                  key="sel_aluno_pred")
+        aluno_nome = st.selectbox("Escolha o Aluno Cadastrado", [a["nome"] for a in st.session_state.alunos], key="sel_aluno_pred")
         aluno_selecionado = next(a for a in st.session_state.alunos if a["nome"] == aluno_nome)
 
         val_inst = aluno_selecionado["instrumento"]
         val_faixa = aluno_selecionado["faixa_etaria"]
         val_tempo = aluno_selecionado["tempo_matricula"]
         val_freq = aluno_selecionado["frequencia"]
-        val_atrasos = 3 if aluno_selecionado["status_pagamento"] == "Inadimplente" else (
-            1 if aluno_selecionado["status_pagamento"] == "Pendente" else 0)
+        val_atrasos = 3 if aluno_selecionado["status_pagamento"] == "Inadimplente" else (1 if aluno_selecionado["status_pagamento"] == "Pendente" else 0)
         val_canceladas = max(0, aluno_selecionado["aulas_totais"] - aluno_selecionado["aulas_feitas"] - 2)
         val_evolucao = aluno_selecionado.get("evolucao", 7.0)
         val_estudo = aluno_selecionado["horas_estudo"]
 
-        st.info(
-            f"Parâmetros de **{aluno_nome}** carregados: Pagamento `{aluno_selecionado['status_pagamento']}` | Frequência `{val_freq}%` | Estudo `{val_estudo}h/sem`")
+        st.info(f"Parâmetros de **{aluno_nome}** carregados: Pagamento `{aluno_selecionado['status_pagamento']}` | Frequência `{val_freq}%` | Estudo `{val_estudo}h/sem`")
     else:
         col_s1, col_s2, col_s3 = st.columns(3)
         with col_s1:
             val_inst = st.selectbox("Instrumento", ["Violino", "Piano"], key="man_inst")
-            val_faixa = st.selectbox("Faixa Etária",
-                                     ["Infantil (6-12)", "Jovem (13-17)", "Adulto (18-59)", "Sênior (60+)"],
-                                     key="man_faixa")
+            val_faixa = st.selectbox("Faixa Etária", ["Infantil (6-12)", "Jovem (13-17)", "Adulto (18-59)", "Sênior (60+)"], key="man_faixa")
             val_tempo = st.slider("Tempo de Matrícula (meses)", 1, 48, 6, key="man_tempo")
         with col_s2:
             val_freq = st.slider("Taxa de Frequência (%)", 0.0, 100.0, 75.0, key="man_freq")
-            val_canceladas = st.number_input("Aulas Canceladas (últimos 3 meses)", min_value=0, max_value=12, value=1,
-                                             key="man_canc")
-            val_atrasos = st.number_input("Histórico de Atrasos / Falta de Pagamento", min_value=0, max_value=10,
-                                          value=0, key="man_atra")
+            val_canceladas = st.number_input("Aulas Canceladas (últimos 3 meses)", min_value=0, max_value=12, value=1, key="man_canc")
+            val_atrasos = st.number_input("Histórico de Atrasos / Falta de Pagamento", min_value=0, max_value=10, value=0, key="man_atra")
         with col_s3:
             val_evolucao = st.slider("Nota de Evolução Técnica (1 a 10)", 1.0, 10.0, 6.5, step=0.5, key="man_evol")
             val_estudo = st.slider("Horas de Estudo em Casa / Semana", 0.0, 15.0, 3.0, step=0.5, key="man_est")
@@ -478,11 +555,12 @@ with tab_predicao:
 
         with col_res2:
             if probabilidade >= 50:
-                st.warning(
-                    "⚠️ **Recomendação:** Contato ativo pedagógico, revisão da dificuldade do repertório e renegociação preventiva de eventuais parcelas.")
+                st.warning("⚠️ **Recomendação:** Contato ativo pedagógico, revisão da dificuldade do repertório e renegociação preventiva de eventuais parcelas.")
             else:
                 st.success("✅ **Recomendação:** Aluno com boa retenção. Manter o cronograma pedagógico atual.")
 
+# ----------------------------------------------------
+# ABA BI & DADOS HISTÓRICOS
 # ----------------------------------------------------
 with tab_bi:
     st.subheader("Painel de BI e Métricas do Modelo Preditivo")
