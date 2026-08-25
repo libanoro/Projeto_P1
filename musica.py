@@ -12,7 +12,7 @@ from sklearn.metrics import accuracy_score
 # ==========================================
 st.set_page_config(
     page_title="Projeto Integrador 4",
-    page_icon="💀💀💀",
+    page_icon="🎻",
     layout="wide"
 )
 
@@ -148,7 +148,7 @@ if "agenda" not in st.session_state:
     ]
 
 # ==========================================
-# MODELO DE MACHINE LEARNING
+# MOTOR DE DADOS & MACHINE LEARNING (BACKEND ATIVO)
 # ==========================================
 @st.cache_resource
 def inicializar_modelo_ia():
@@ -165,12 +165,12 @@ def inicializar_modelo_ia():
     horas_estudo_casa = np.random.uniform(0.5, 12.0, size=n_samples)
 
     score_risco = (
-            (100 - taxa_frequencia) * 0.35 +
-            (aulas_canceladas_3m * 6.5) +
-            (atrasos_pagamento * 8.0) +
-            (10 - evolucao_tecnica) * 3.0 -
-            (horas_estudo_casa * 2.5) -
-            (tempo_matricula * 0.4)
+        (100 - taxa_frequencia) * 0.35 +
+        (aulas_canceladas_3m * 6.5) +
+        (atrasos_pagamento * 8.0) +
+        (10 - evolucao_tecnica) * 3.0 -
+        (horas_estudo_casa * 2.5) -
+        (tempo_matricula * 0.4)
     )
     probabilidade_evasao = 1 / (1 + np.exp(-(score_risco - 25) / 10))
     evasao = (np.random.rand(n_samples) < probabilidade_evasao).astype(int)
@@ -198,6 +198,7 @@ def inicializar_modelo_ia():
 
     return modelo, list(X.columns), acuracia, df_treino
 
+# Execução do pipeline de dados e modelo
 modelo_ia, colunas_modelo, acuracia_ia, df_historico = inicializar_modelo_ia()
 
 def predizer_risco_aluno(dados_aluno):
@@ -208,16 +209,16 @@ def predizer_risco_aluno(dados_aluno):
     return float(prob)
 
 # ==========================================
-# PAINEL PRINCIPAL
+# PAINEL PRINCIPAL (ABA BI OCULTA DA INTERFACE)
 # ==========================================
-st.title("💀 Projeto Integrador 4 💀")
+st.title("🎻 Projeto Integrador 4 - Gestão Musical")
 
-tab_financas, tab_alunos, tab_agenda, tab_predicao, tab_bi = st.tabs([
+tab_financas, tab_alunos, tab_agenda, tab_predicao = st.tabs([
     "💰 Financeiro",
     "👥 Alunos & Presença",
     "📅 Agendamentos",
-    "🧠 Diagnóstico IA",
-    ])
+    "🧠 Diagnóstico IA"
+])
 
 # ----------------------------------------------------
 # ABA FINANCEIRO
@@ -296,7 +297,6 @@ with tab_alunos:
                     novo_id = max([a["id"] for a in st.session_state.alunos], default=0) + 1
                     freq_calc = 100.0 if aulas_totais == 0 else round(min(100.0, (int(aulas_feitas) / int(aulas_totais)) * 100), 1)
                     
-                    # Gera histórico inicial caso o aluno já entre com aulas feitas
                     hist_inicial = [{"id": i + 1, "data": str(hoje)} for i in range(int(aulas_feitas))]
 
                     st.session_state.alunos.append({
@@ -325,13 +325,11 @@ with tab_alunos:
         if "historico_aulas" not in aluno:
             aluno["historico_aulas"] = [{"id": i + 1, "data": str(hoje)} for i in range(aluno.get("aulas_feitas", 0))]
 
-        # Sincroniza aulas feitas com o tamanho real do histórico
         aluno["aulas_feitas"] = len(aluno["historico_aulas"])
         aulas_a_fazer = max(0, aluno["aulas_totais"] - aluno["aulas_feitas"])
         pct_concluido = min(1.0, aluno["aulas_feitas"] / aluno["aulas_totais"]) if aluno["aulas_totais"] > 0 else 0.0
         aluno["frequencia"] = round(min(100.0, (aluno["aulas_feitas"] / aluno["aulas_totais"]) * 100), 1) if aluno["aulas_totais"] > 0 else 100.0
 
-        # Predição de risco direta no card
         atraso_num = 3 if aluno["status_pagamento"] == "Inadimplente" else (1 if aluno["status_pagamento"] == "Pendente" else 0)
         dados_inferencia = {
             "Tempo_Matricula_Meses": aluno["tempo_matricula"],
@@ -384,9 +382,6 @@ with tab_alunos:
                     else:
                         st.info("Pacote de aulas concluído.")
 
-            # ==========================================
-            # SEÇÃO: HISTÓRICO, EDIÇÃO, EXCLUSÃO E AGENDAMENTO MANUAL DE DIAS
-            # ==========================================
             with st.expander(f"📅 Ver e Gerenciar Histórico de Aulas ({len(aluno['historico_aulas'])} registradas)"):
                 st.markdown("##### 📌 Marcar Aula em Outro Dia")
                 col_n1, col_n2 = st.columns([3, 1])
@@ -481,7 +476,6 @@ with tab_agenda:
             if ag["status"] == "Agendada":
                 if ca3.button("Marcar Realizada", key=f"btn_done_{ag['id']}"):
                     ag["status"] = "Realizada"
-                    # Ao marcar como realizada, registra a data no histórico do aluno
                     for al in st.session_state.alunos:
                         if al["nome"] == ag["aluno"] and al["aulas_feitas"] < al["aulas_totais"]:
                             if "historico_aulas" not in al:
@@ -557,6 +551,3 @@ with tab_predicao:
                 st.warning("⚠️ **Recomendação:** Contato ativo pedagógico, revisão da dificuldade do repertório e renegociação preventiva de eventuais parcelas.")
             else:
                 st.success("✅ **Recomendação:** Aluno com boa retenção. Manter o cronograma pedagógico atual.")
-
-# ----------------------------------------------------
-
