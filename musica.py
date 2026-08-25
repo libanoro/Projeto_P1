@@ -560,44 +560,4 @@ with tab_predicao:
                 st.success("✅ **Recomendação:** Aluno com boa retenção. Manter o cronograma pedagógico atual.")
 
 # ----------------------------------------------------
-# ABA BI & DADOS HISTÓRICOS
-# ----------------------------------------------------
-with tab_bi:
-    st.subheader("Painel de BI e Métricas do Modelo Preditivo")
 
-    kb1, kb2, kb3 = st.columns(3)
-    kb1.metric("Amostras de Treino", len(df_historico))
-    kb2.metric("Acurácia da RandomForest", f"{acuracia_ia * 100:.1f}%")
-    kb3.metric("Taxa Global de Evasão (Base)", f"{(df_historico['Evasao'].mean() * 100):.1f}%")
-
-    st.divider()
-    col_bi1, col_bi2 = st.columns(2)
-
-    with col_bi1:
-        fig_hist_freq = px.histogram(
-            df_historico,
-            x="Taxa_Frequencia_Pct",
-            color=df_historico["Evasao"].map({0: "Ativo", 1: "Evadido"}),
-            barmode="overlay",
-            title="Distribuição de Frequência x Evasão Histórica",
-            labels={"Taxa_Frequencia_Pct": "Frequência (%)", "color": "Status"}
-        )
-        st.plotly_chart(fig_hist_freq, use_container_width=True)
-
-    with col_bi2:
-        importancias = pd.DataFrame({
-            "Variável": colunas_modelo,
-            "Importância": modelo_ia.feature_importances_
-        }).sort_values(by="Importância", ascending=True)
-
-        fig_imp = px.bar(
-            importancias,
-            x="Importância",
-            y="Variável",
-            orientation="h",
-            title="Importância dos Fatores no Modelo IA"
-        )
-        st.plotly_chart(fig_imp, use_container_width=True)
-
-    st.markdown("#### Amostra da Base Histórica")
-    st.dataframe(df_historico.head(50), use_container_width=True)
