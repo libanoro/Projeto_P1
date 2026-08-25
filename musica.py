@@ -8,12 +8,55 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 
 # ==========================================
+# CONFIGURAÇÃO DA PÁGINA
+# ==========================================
 st.set_page_config(
     page_title="Projeto Integrador 4",
     page_icon="💀💀💀",
     layout="wide"
 )
 
+# ==========================================
+# GERENCIAMENTO DE SESSÃO & AUTENTICAÇÃO
+# ==========================================
+if "autenticado" not in st.session_state:
+    st.session_state.autenticado = False
+
+def tela_login():
+    col1, col2, col3 = st.columns([1, 1.5, 1])
+    with col2:
+        st.markdown("## 🔐 Acesso ao Sistema")
+        st.markdown("Por favor, insira suas credenciais para continuar.")
+        
+        with st.form("form_login"):
+            usuario = st.text_input("Usuário", placeholder="Digite seu usuário")
+            senha = st.text_input("Senha", type="password", placeholder="Digite sua senha")
+            botao_entrar = st.form_submit_button("Entrar", use_container_width=True)
+
+            if botao_entrar:
+                if usuario == "admin" and senha == "123456":
+                    st.session_state.autenticado = True
+                    st.success("Login realizado com sucesso!")
+                    st.rerun()
+                else:
+                    st.error("Usuário ou senha incorretos.")
+
+if not st.session_state.autenticado:
+    tela_login()
+    st.stop()
+
+# ==========================================
+# BARRA LATERAL (LOGOUT)
+# ==========================================
+with st.sidebar:
+    st.markdown("### 👤 Usuário Logado")
+    st.write("**admin**")
+    if st.button("🚪 Sair (Logout)", use_container_width=True):
+        st.session_state.autenticado = False
+        st.rerun()
+
+# ==========================================
+# INICIALIZAÇÃO DE DADOS
 # ==========================================
 if "alunos" not in st.session_state:
     st.session_state.alunos = [
@@ -89,9 +132,9 @@ if "agenda" not in st.session_state:
          "status": "Realizada"}
     ]
 
-
 # ==========================================
-
+# MODELO DE MACHINE LEARNING
+# ==========================================
 @st.cache_resource
 def inicializar_modelo_ia():
     np.random.seed(42)
@@ -130,7 +173,6 @@ def inicializar_modelo_ia():
         "Evasao": evasao
     })
 
-    # One-Hot Encoding com tipos inteiros explícitos
     df_encoded = pd.get_dummies(df_treino.drop(columns=["Evasao"]), columns=["Instrumento", "Faixa_Etaria"], dtype=int)
     X = df_encoded
     y = df_treino["Evasao"]
@@ -142,23 +184,18 @@ def inicializar_modelo_ia():
 
     return modelo, list(X.columns), acuracia, df_treino
 
-
 modelo_ia, colunas_modelo, acuracia_ia, df_historico = inicializar_modelo_ia()
 
-
-# ==========================================
-
 def predizer_risco_aluno(dados_aluno):
-    """Garante alinhamento estrito de colunas antes da inferência."""
     df_single = pd.DataFrame([dados_aluno])
     df_enc = pd.get_dummies(df_single, columns=["Instrumento", "Faixa_Etaria"], dtype=int)
     df_final = df_enc.reindex(columns=colunas_modelo, fill_value=0)
     prob = modelo_ia.predict_proba(df_final)[0][1] * 100
     return float(prob)
 
-
 # ==========================================
-
+# PAINEL PRINCIPAL
+# ==========================================
 st.title("💀 Projeto Integrador 4 💀")
 
 tab_financas, tab_alunos, tab_agenda, tab_predicao, tab_bi = st.tabs([
@@ -170,7 +207,6 @@ tab_financas, tab_alunos, tab_agenda, tab_predicao, tab_bi = st.tabs([
 ])
 
 # ----------------------------------------------------
-
 with tab_financas:
     st.subheader("Controle de Caixa e Inadimplência")
     df_cadastrados = pd.DataFrame(st.session_state.alunos)
@@ -217,7 +253,6 @@ with tab_financas:
             st.plotly_chart(fig_inst, use_container_width=True)
 
 # ----------------------------------------------------
-
 with tab_alunos:
     st.subheader("Cadastro e Registro de Presença")
 
@@ -275,7 +310,6 @@ with tab_alunos:
         aulas_a_fazer = max(0, aluno["aulas_totais"] - aluno["aulas_feitas"])
         pct_concluido = min(1.0, aluno["aulas_feitas"] / aluno["aulas_totais"]) if aluno["aulas_totais"] > 0 else 0.0
 
-        # Predição de risco direta no card
         atraso_num = 3 if aluno["status_pagamento"] == "Inadimplente" else (
             1 if aluno["status_pagamento"] == "Pendente" else 0)
         dados_inferencia = {
@@ -332,7 +366,6 @@ with tab_alunos:
             st.divider()
 
 # ----------------------------------------------------
-
 with tab_agenda:
     st.subheader("Agendamento de Aulas")
     col_ag1, col_ag2 = st.columns([1, 2])
@@ -369,7 +402,6 @@ with tab_agenda:
             if ag["status"] == "Agendada":
                 if ca3.button("Marcar Realizada", key=f"btn_done_{ag['id']}"):
                     ag["status"] = "Realizada"
-                    # Atualiza presença do aluno
                     for al in st.session_state.alunos:
                         if al["nome"] == ag["aluno"] and al["aulas_feitas"] < al["aulas_totais"]:
                             al["aulas_feitas"] += 1
@@ -380,7 +412,6 @@ with tab_agenda:
             st.divider()
 
 # ----------------------------------------------------
-
 with tab_predicao:
     st.subheader("Análise Preditiva de Risco de Evasão")
     origem = st.radio("Selecione o modo de análise:", ["Carregar Aluno Cadastrado", "Simulação Manual"],
@@ -453,7 +484,6 @@ with tab_predicao:
                 st.success("✅ **Recomendação:** Aluno com boa retenção. Manter o cronograma pedagógico atual.")
 
 # ----------------------------------------------------
-
 with tab_bi:
     st.subheader("Painel de BI e Métricas do Modelo Preditivo")
 
