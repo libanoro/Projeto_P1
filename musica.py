@@ -13,8 +13,8 @@ from sklearn.metrics import accuracy_score
 # CONFIGURAÇÃO DA PÁGINA
 # ==========================================
 st.set_page_config(
-    page_title="Studio Duo - Gestão & IA",
-    page_icon="🎻",
+    page_title="PROJETO INTEGRADOR 4",
+    page_icon="💀",
     layout="wide"
 )
 
@@ -307,7 +307,7 @@ def predizer_risco_aluno(dados_aluno):
 # ==========================================
 # PAINEL PRINCIPAL
 # ==========================================
-st.title("🎻 Studio Duo - Gestão Pedagógica & IA")
+st.title("💀 PROJETO INTEGRADOR 4 💀")
 
 tab_financas, tab_alunos, tab_agenda, tab_predicao = st.tabs([
     "💰 Financeiro",
