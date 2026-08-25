@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.express as px
+import base64
+from pathlib import Path
 from datetime import date, time, timedelta
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
@@ -11,52 +13,147 @@ from sklearn.metrics import accuracy_score
 # CONFIGURAÇÃO DA PÁGINA
 # ==========================================
 st.set_page_config(
-    page_title="Projeto Integrador 4",
-    page_icon="💀",
+    page_title="Studio Duo - Gestão & IA",
+    page_icon="🎻",
     layout="wide"
 )
 
 # ==========================================
-# GERENCIAMENTO DE SESSÃO & AUTENTICAÇÃO
+# INJEÇÃO DA IMAGEM DE FUNDO (OFFLINE / BASE64)
 # ==========================================
+def aplicar_fundo_logo(caminho_imagem="logo.png"):
+    """Carrega o logo local, converte para Base64 e aplica como marca d'água no fundo."""
+    if Path(caminho_imagem).exists():
+        with open(caminho_imagem, "rb") as f:
+            dados_base64 = base64.b64encode(f.read()).decode()
+        
+        css = f"""
+        <style>
+        [data-testid="stAppViewContainer"] {{
+            background: linear-gradient(rgba(255, 255, 255, 0.90), rgba(255, 255, 255, 0.90)), 
+                        url("data:image/png;base64,{dados_base64}");
+            background-size: 550px;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }}
+        [data-testid="stHeader"] {{
+            background-color: rgba(0,0,0,0);
+        }}
+        [data-testid="stSidebar"] {{
+            background-color: rgba(245, 250, 252, 0.95);
+        }}
+        </style>
+        """
+        st.markdown(css, unsafe_allow_html=True)
+
+aplicar_fundo_logo("logo.png")
+
+# ==========================================
+# GERENCIAMENTO DE SESSÃO & USUÁRIOS (ADMINS)
+# ==========================================
+if "usuarios" not in st.session_state:
+    st.session_state.usuarios = {
+        "admin": {"senha": "123456", "nome": "Administrador Principal"}
+    }
+
 if "autenticado" not in st.session_state:
     st.session_state.autenticado = False
 
-def tela_login():
-    col1, col2, col3 = st.columns([1, 1.5, 1])
-    with col2:
-        st.markdown("## 🔐 Acesso ao Sistema")
-        st.markdown("Por favor, insira suas credenciais para continuar.")
-        
-        with st.form("form_login"):
-            usuario = st.text_input("Usuário", placeholder="Digite seu usuário")
-            senha = st.text_input("Senha", type="password", placeholder="Digite sua senha")
-            botao_entrar = st.form_submit_button("Entrar", use_container_width=True)
+if "usuario_ativo" not in st.session_state:
+    st.session_state.usuario_ativo = None
 
-            if botao_entrar:
-                if usuario == "admin" and senha == "123456":
-                    st.session_state.autenticado = True
-                    st.success("Login realizado com sucesso!")
-                    st.rerun()
-                else:
-                    st.error("Usuário ou senha incorretos.")
+def tela_login():
+    col1, col2, col3 = st.columns([1, 1.8, 1])
+    with col2:
+        st.markdown("## 🎻 Studio Duo - Acesso")
+        tab_entrar, tab_cadastrar_admin = st.tabs(["🔐 Entrar", "➕ Cadastrar Novo Administrador"])
+
+        with tab_entrar:
+            with st.form("form_login"):
+                usuario = st.text_input("Usuário", placeholder="Ex: admin").strip().lower()
+                senha = st.text_input("Senha", type="password", placeholder="Digite sua senha")
+                botao_entrar = st.form_submit_button("Acessar Sistema", use_container_width=True)
+
+                if botao_entrar:
+                    if usuario in st.session_state.usuarios and st.session_state.usuarios[usuario]["senha"] == senha:
+                        st.session_state.autenticado = True
+                        st.session_state.usuario_ativo = usuario
+                        st.session_state.nome_ativo = st.session_state.usuarios[usuario]["nome"]
+                        st.success("Login realizado com sucesso!")
+                        st.rerun()
+                    else:
+                        st.error("Usuário ou senha incorretos.")
+
+        with tab_cadastrar_admin:
+            with st.form("form_novo_admin_login"):
+                nome_novo = st.text_input("Nome Completo *").strip()
+                usuario_novo = st.text_input("Nome de Usuário (Login) *").strip().lower()
+                senha_nova = st.text_input("Senha *", type="password")
+                senha_confirma = st.text_input("Confirmar Senha *", type="password")
+                botao_cadastrar = st.form_submit_button("Criar Conta de Administrador", use_container_width=True)
+
+                if botao_cadastrar:
+                    if not nome_novo or not usuario_novo or not senha_nova:
+                        st.error("Preencha todos os campos obrigatórios.")
+                    elif usuario_novo in st.session_state.usuarios:
+                        st.error("Este nome de usuário já está cadastrado.")
+                    elif senha_nova != senha_confirma:
+                        st.error("As senhas digitadas não coincidem.")
+                    elif len(senha_nova) < 4:
+                        st.error("A senha deve conter no mínimo 4 caracteres.")
+                    else:
+                        st.session_state.usuarios[usuario_novo] = {
+                            "senha": senha_nova,
+                            "nome": nome_novo
+                        }
+                        st.success(f"Administrador '{usuario_novo}' cadastrado com sucesso! Acesse na aba 'Entrar'.")
 
 if not st.session_state.autenticado:
     tela_login()
     st.stop()
 
 # ==========================================
-# BARRA LATERAL (LOGOUT)
+# BARRA LATERAL (ADMINISTRAÇÃO & LOGOUT)
 # ==========================================
 with st.sidebar:
-    st.markdown("### 👤 Usuário Logado")
-    st.write("**admin**")
+    st.markdown("### 👤 Administrador Logado")
+    st.write(f"**{st.session_state.get('nome_ativo', 'Administrador')}** (`@{st.session_state.usuario_ativo}`)")
+    
     if st.button("🚪 Sair (Logout)", use_container_width=True):
         st.session_state.autenticado = False
+        st.session_state.usuario_ativo = None
         st.rerun()
 
+    st.divider()
+    with st.expander("👥 Cadastrar Novo Administrador"):
+        with st.form("form_novo_admin_sidebar", clear_on_submit=True):
+            nome_sb = st.text_input("Nome Completo *").strip()
+            user_sb = st.text_input("Usuário (Login) *").strip().lower()
+            senha_sb = st.text_input("Senha *", type="password")
+            senha_sb_conf = st.text_input("Confirmar Senha *", type="password")
+            btn_sb_admin = st.form_submit_button("Salvar Novo Admin", use_container_width=True)
+
+            if btn_sb_admin:
+                if not nome_sb or not user_sb or not senha_sb:
+                    st.error("Preencha todos os campos.")
+                elif user_sb in st.session_state.usuarios:
+                    st.error("Usuário já existente.")
+                elif senha_sb != senha_sb_conf:
+                    st.error("Senhas incompatíveis.")
+                else:
+                    st.session_state.usuarios[user_sb] = {
+                        "senha": senha_sb,
+                        "nome": nome_sb
+                    }
+                    st.success(f"Administrador @{user_sb} registrado!")
+
+    with st.expander("📋 Administradores Cadastrados"):
+        for user_key, info in st.session_state.usuarios.items():
+            st.markdown(f"- **{info['nome']}** (`@{user_key}`)")
+
 # ==========================================
-# INICIALIZAÇÃO DE DADOS
+# INICIALIZAÇÃO DE DADOS OPERACIONAIS
 # ==========================================
 hoje = date.today()
 
@@ -148,7 +245,7 @@ if "agenda" not in st.session_state:
     ]
 
 # ==========================================
-# MOTOR DE DADOS & MACHINE LEARNING (BACKEND ATIVO)
+# MOTOR DE DADOS & MACHINE LEARNING (BACKEND)
 # ==========================================
 @st.cache_resource
 def inicializar_modelo_ia():
@@ -198,7 +295,6 @@ def inicializar_modelo_ia():
 
     return modelo, list(X.columns), acuracia, df_treino
 
-# Execução do pipeline de dados e modelo
 modelo_ia, colunas_modelo, acuracia_ia, df_historico = inicializar_modelo_ia()
 
 def predizer_risco_aluno(dados_aluno):
@@ -209,9 +305,9 @@ def predizer_risco_aluno(dados_aluno):
     return float(prob)
 
 # ==========================================
-# PAINEL PRINCIPAL (ABA BI OCULTA DA INTERFACE)
+# PAINEL PRINCIPAL
 # ==========================================
-st.title("💀 Projeto Integrador 4 - Gestão Musical 💀")
+st.title("🎻 Studio Duo - Gestão Pedagógica & IA")
 
 tab_financas, tab_alunos, tab_agenda, tab_predicao = st.tabs([
     "💰 Financeiro",
@@ -236,8 +332,8 @@ with tab_financas:
 
         c1, c2, c3, c4 = st.columns(4)
         c1.metric("Faturamento Previsto", f"R$ {total_previsto:,.2f}")
-        c2.metric("Valor Entrado (Pago)", f"R$ {total_pago:,.2f}", delta=f"{(total_pago / total_previsto) * 100:.1f}% recebido")
-        c3.metric("Valor em Aberto (Falta)", f"R$ {total_falta:,.2f}", delta=f"-{(total_falta / total_previsto) * 100:.1f}%", delta_color="inverse")
+        c2.metric("Valor Entrado (Pago)", f"R$ {total_pago:,.2f}", delta=f"{(total_pago / total_previsto) * 100:.1f}% recebido" if total_previsto > 0 else "0%")
+        c3.metric("Valor em Aberto (Falta)", f"R$ {total_falta:,.2f}", delta=f"-{(total_falta / total_previsto) * 100:.1f}%" if total_previsto > 0 else "0%", delta_color="inverse")
         c4.metric("Inadimplência Crítica", f"R$ {total_inadimplente:,.2f}", delta_color="inverse")
 
         st.divider()
@@ -296,7 +392,6 @@ with tab_alunos:
                 if nome.strip() and endereco.strip():
                     novo_id = max([a["id"] for a in st.session_state.alunos], default=0) + 1
                     freq_calc = 100.0 if aulas_totais == 0 else round(min(100.0, (int(aulas_feitas) / int(aulas_totais)) * 100), 1)
-                    
                     hist_inicial = [{"id": i + 1, "data": str(hoje)} for i in range(int(aulas_feitas))]
 
                     st.session_state.alunos.append({
