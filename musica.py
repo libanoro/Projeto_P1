@@ -12,148 +12,217 @@ from sklearn.metrics import accuracy_score
 # CONFIGURAÇÃO DA PÁGINA
 # ==========================================
 st.set_page_config(
-    page_title="Gestão Musical - Metro UI",
+    page_title="metro framework // gestão musical",
     page_icon="🎵",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
 # ==========================================
-# DESIGN SYSTEM: METRO UI (CSS CUSTOMIZADO)
+# DESIGN SYSTEM: METROFRAMEWORK (DARK & CYAN ACCENT)
 # ==========================================
-metro_css = """
+metro_dark_css = """
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Segoe+UI:wght@300;400;600;700&display=swap');
 
     html, body, [class*="css"] {
-        font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif !important;
+        font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif !important;
     }
 
+    /* Fundo Totalmente Escuro (Metro Dark Theme) */
     .stApp {
-        background-color: #f3f3f3;
-        color: #1a1a1a;
+        background-color: #111111 !important;
+        color: #f1f1f1 !important;
     }
 
-    /* Títulos Estilo Metro / Modern Windows */
+    /* Sidebar Metro Escura */
+    [data-testid="stSidebar"] {
+        background-color: #161616 !important;
+        border-right: 1px solid #2d2d30 !important;
+    }
+
+    /* Tipografia Segoe UI Light */
     h1, h2, h3, h4, h5, h6 {
         font-family: 'Segoe UI Light', 'Segoe UI', sans-serif !important;
         font-weight: 300 !important;
+        color: #ffffff !important;
         letter-spacing: -0.5px;
-        color: #111111;
-        text-transform: none;
     }
 
-    /* Botões Flat Metro */
-    .stButton > button {
-        border-radius: 0px !important;
-        border: 2px solid transparent !important;
-        background-color: #0078d7 !important;
-        color: #ffffff !important;
-        font-weight: 600 !important;
-        text-transform: uppercase !important;
-        font-size: 12px !important;
-        letter-spacing: 0.5px !important;
-        padding: 8px 16px !important;
-        transition: background-color 0.2s ease, border-color 0.2s ease !important;
-    }
-
-    .stButton > button:hover {
-        background-color: #005a9e !important;
-        color: #ffffff !important;
-        border-color: #004578 !important;
-    }
-
-    .stButton > button:focus {
-        box-shadow: none !important;
-    }
-
-    /* Campos de Entrada Sharp (Sem arredondamento) */
-    .stTextInput input, .stSelectbox [data-baseweb="select"], .stNumberInput input, .stDateInput input, .stTimeInput input {
-        border-radius: 0px !important;
-        border: 1px solid #767676 !important;
-        background-color: #ffffff !important;
-        color: #000000 !important;
-        font-family: 'Segoe UI', sans-serif !important;
-    }
-
-    .stTextInput input:focus, .stNumberInput input:focus, .stDateInput input:focus, .stTimeInput input:focus {
-        border-color: #0078d7 !important;
-        box-shadow: 0 0 0 1px #0078d7 !important;
-    }
-
-    /* Tabs Flat com Indicador Accent */
+    /* ABAS METROFRAMEWORK (Estilo exato da imagem: texto limpo + barra cyan ativa) */
     .stTabs [data-baseweb="tab-list"] {
-        gap: 0px;
-        background-color: #ffffff;
-        border-bottom: 2px solid #e0e0e0;
-        padding-left: 10px;
+        background-color: transparent !important;
+        border-bottom: 1px solid #333333 !important;
+        gap: 25px !important;
+        padding-bottom: 2px !important;
     }
 
     .stTabs [data-baseweb="tab"] {
-        border-radius: 0px !important;
-        padding: 12px 24px !important;
-        font-weight: 600 !important;
-        font-size: 14px !important;
-        color: #555555 !important;
-        border: none !important;
         background-color: transparent !important;
+        border: none !important;
+        border-bottom: 3px solid transparent !important;
+        border-radius: 0px !important;
+        color: #888888 !important;
+        font-family: 'Segoe UI', sans-serif !important;
+        font-size: 15px !important;
+        font-weight: 400 !important;
+        padding: 8px 6px !important;
+        transition: color 0.15s ease, border-bottom 0.15s ease;
     }
 
     .stTabs [aria-selected="true"] {
-        color: #0078d7 !important;
-        border-bottom: 3px solid #0078d7 !important;
-        background-color: #f9f9f9 !important;
+        color: #ffffff !important;
+        border-bottom: 3px solid #00bcf2 !important;
+        background-color: transparent !important;
     }
 
-    /* Tiles / Cards Flat Metro */
-    .metro-tile {
-        padding: 16px 20px;
-        margin-bottom: 15px;
+    /* BOTÕES METRO (Normal, Highlighted e Tiles da imagem) */
+    .stButton > button {
+        border-radius: 0px !important;
+        border: 1px solid #3f3f46 !important;
+        background-color: #252526 !important;
+        color: #ffffff !important;
+        font-weight: 400 !important;
+        font-size: 13px !important;
+        font-family: 'Segoe UI', sans-serif !important;
+        padding: 8px 16px !important;
+        min-height: 42px !important;
+        transition: all 0.15s ease-in-out !important;
+    }
+
+    /* Botão Highlighted (Borda Ciano Metro) */
+    .stButton > button:hover {
+        border-color: #00bcf2 !important;
+        color: #00bcf2 !important;
+        background-color: #1f1f20 !important;
+    }
+
+    .stButton > button:active, .stButton > button:focus {
+        background-color: #00bcf2 !important;
+        color: #ffffff !important;
+        border-color: #00bcf2 !important;
+        box-shadow: none !important;
+    }
+
+    /* Botões de Envio / Submit (Sólidos em Cyan) */
+    .stFormSubmitButton > button {
+        background-color: #00bcf2 !important;
+        color: #ffffff !important;
+        border: 1px solid #00bcf2 !important;
+        font-weight: 600 !important;
+    }
+    .stFormSubmitButton > button:hover {
+        background-color: #0099c7 !important;
+        color: #ffffff !important;
+    }
+
+    /* CAMPOS DE FORMULÁRIO (Flat Dark com foco Cyan) */
+    .stTextInput input, .stSelectbox [data-baseweb="select"], .stNumberInput input, .stDateInput input, .stTimeInput input {
+        border-radius: 0px !important;
+        border: 1px solid #3f3f46 !important;
+        background-color: #1f1f20 !important;
+        color: #ffffff !important;
+        font-family: 'Segoe UI', sans-serif !important;
+        min-height: 40px !important;
+    }
+
+    .stTextInput input:focus, .stNumberInput input:focus, .stDateInput input:focus, .stTimeInput input:focus {
+        border-color: #00bcf2 !important;
+        box-shadow: 0 0 0 1px #00bcf2 !important;
+    }
+
+    /* CONTAINERS E CARDS METRO */
+    .metro-panel {
+        background-color: #181818;
+        border: 1px solid #2d2d30;
+        padding: 18px 20px;
+        margin-bottom: 20px;
+    }
+
+    .metro-panel-title {
+        color: #00bcf2;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 600;
+        margin-bottom: 12px;
+        border-bottom: 1px solid #282828;
+        padding-bottom: 6px;
+    }
+
+    /* METRO TILES (Estilo idêntico ao da imagem - texto no canto inferior esquerdo) */
+    .metro-tile-cyan {
+        background-color: #00bcf2;
         color: #ffffff;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .metro-tile-blue { background-color: #0078d7; }
-    .metro-tile-green { background-color: #107c41; }
-    .metro-tile-orange { background-color: #d83b01; }
-    .metro-tile-red { background-color: #e81123; }
-    .metro-tile-purple { background-color: #5c2d91; }
-    .metro-tile-teal { background-color: #008272; }
-
-    .metro-card {
-        background-color: #ffffff;
-        border: 1px solid #e0e0e0;
-        border-left: 5px solid #0078d7;
         padding: 16px;
-        margin-bottom: 16px;
+        min-height: 110px;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        position: relative;
+        margin-bottom: 12px;
     }
 
-    /* Expanders Sharp */
+    .metro-tile-dark {
+        background-color: #1f1f20;
+        border: 1px solid #333333;
+        color: #ffffff;
+        padding: 16px;
+        min-height: 110px;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        margin-bottom: 12px;
+    }
+
+    .metro-tile-label {
+        font-size: 12px;
+        color: rgba(255,255,255,0.85);
+        text-transform: uppercase;
+        margin-bottom: 2px;
+    }
+
+    .metro-tile-val {
+        font-family: 'Segoe UI Light', 'Segoe UI', sans-serif;
+        font-size: 26px;
+        font-weight: 300;
+        color: #ffffff;
+    }
+
+    /* EXPANDER METRO DARK */
     .streamlit-expanderHeader {
         border-radius: 0px !important;
-        background-color: #ffffff !important;
-        border: 1px solid #e0e0e0 !important;
+        background-color: #1a1a1a !important;
+        border: 1px solid #333333 !important;
+        color: #00bcf2 !important;
         font-weight: 600 !important;
     }
 
     .streamlit-expanderContent {
         border-radius: 0px !important;
-        border: 1px solid #e0e0e0 !important;
+        border: 1px solid #333333 !important;
         border-top: none !important;
-        background-color: #ffffff !important;
+        background-color: #141414 !important;
     }
 
-    /* Alertas e Badges Flat */
-    .stAlert {
+    /* PROGRESS BAR METRO CYAN */
+    .stProgress > div > div > div > div {
+        background-color: #00bcf2 !important;
         border-radius: 0px !important;
-        border: none !important;
-        border-left: 4px solid !important;
     }
 </style>
 """
-st.markdown(metro_css, unsafe_allow_html=True)
+st.markdown(metro_dark_css, unsafe_allow_html=True)
 
-pio.templates.default = "plotly_white"
+# Layout padrão escuro para os gráficos Plotly
+pio.templates["metro_dark"] = pio.templates["plotly_dark"]
+pio.templates["metro_dark"].layout.update(
+    paper_bgcolor="#141414",
+    plot_bgcolor="#141414",
+    font_family="Segoe UI",
+    font_color="#cccccc"
+)
+pio.templates.default = "metro_dark"
 
 # ==========================================
 # GERENCIAMENTO DE SESSÃO & AUTENTICAÇÃO
@@ -162,47 +231,47 @@ if "autenticado" not in st.session_state:
     st.session_state.autenticado = False
 
 def tela_login():
-    st.markdown("<br><br>", unsafe_allow_html=True)
-    c1, c2, c3 = st.columns([1, 1.6, 1])
+    st.markdown("<br>", unsafe_allow_html=True)
+    c1, c2, c3 = st.columns([1, 1.4, 1])
     with c2:
+        # Header Janela Metro
         st.markdown("""
-            <div style="background-color: #0078d7; color: white; padding: 25px 30px;">
-                <h1 style="color: white !important; margin: 0; font-size: 28px;">INICIAR SESSÃO</h1>
-                <p style="margin: 5px 0 0 0; opacity: 0.85; font-size: 14px;">Painel de Controle Metro UI</p>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 8px; margin-bottom: 20px;">
+                <div style="font-size: 26px; font-weight: 300; color: #ffffff;">metro framework</div>
+                <div style="color: #666; font-size: 14px; letter-spacing: 8px;">_ □ ✕</div>
             </div>
         """, unsafe_allow_html=True)
 
-        with st.container():
-            st.markdown('<div style="background-color: #ffffff; padding: 25px; border: 1px solid #e0e0e0; border-top: none;">', unsafe_allow_html=True)
-            with st.form("form_login"):
-                usuario = st.text_input("NOME DE USUÁRIO", placeholder="admin")
-                senha = st.text_input("PALAVRA-PASSE", type="password", placeholder="123456")
-                botao_entrar = st.form_submit_button("ENTRAR NO SISTEMA", use_container_width=True)
+        st.markdown('<div class="metro-panel"><div class="metro-panel-title">Acesso Restrito</div>', unsafe_allow_html=True)
+        with st.form("form_login"):
+            usuario = st.text_input("NOME DE USUÁRIO", placeholder="admin")
+            senha = st.text_input("PALAVRA-PASSE", type="password", placeholder="123456")
+            botao_entrar = st.form_submit_button("ENTRAR NO SISTEMA", use_container_width=True)
 
-                if botao_entrar:
-                    if usuario == "admin" and senha == "123456":
-                        st.session_state.autenticado = True
-                        st.success("Autenticação autorizada.")
-                        st.rerun()
-                    else:
-                        st.error("Credenciais inválidas. Tente novamente.")
-            st.markdown('</div>', unsafe_allow_html=True)
+            if botao_entrar:
+                if usuario == "admin" and senha == "123456":
+                    st.session_state.autenticado = True
+                    st.success("Autenticação autorizada.")
+                    st.rerun()
+                else:
+                    st.error("Credenciais inválidas. Tente novamente.")
+        st.markdown('</div>', unsafe_allow_html=True)
 
 if not st.session_state.autenticado:
     tela_login()
     st.stop()
 
 # ==========================================
-# BARRA LATERAL METRO
+# BARRA LATERAL (SIDEBAR METRO DARK)
 # ==========================================
 with st.sidebar:
     st.markdown("""
-        <div style="background-color: #2b2b2b; color: #ffffff; padding: 15px; margin: -15px -15px 15px -15px;">
-            <div style="font-size: 11px; text-transform: uppercase; color: #00a4ef; font-weight: 700;">CONTA ATIVA</div>
-            <div style="font-size: 18px; font-weight: 300;">Administrador</div>
+        <div style="border-bottom: 1px solid #2d2d30; padding-bottom: 12px; margin-bottom: 15px;">
+            <div style="font-size: 11px; text-transform: uppercase; color: #00bcf2; font-weight: 600;">SISTEMA ATIVO</div>
+            <div style="font-size: 20px; font-weight: 300; color: #ffffff;">admin</div>
         </div>
     """, unsafe_allow_html=True)
-    
+
     if st.button("🚪 ENCERRAR SESSÃO", use_container_width=True):
         st.session_state.autenticado = False
         st.rerun()
@@ -348,28 +417,33 @@ def predizer_risco_aluno(dados_aluno):
     return float(prob)
 
 # ==========================================
-# CABEÇALHO DO SISTEMA
+# CABEÇALHO DO SISTEMA METRO FRAMEWORK
 # ==========================================
 st.markdown("""
-    <div style="background-color: #0078d7; color: white; padding: 20px 30px; margin-bottom: 25px;">
-        <h1 style="color: white !important; margin: 0; font-size: 32px;">SISTEMA DE GESTÃO MUSICAL</h1>
-        <div style="font-size: 13px; letter-spacing: 1px; text-transform: uppercase; opacity: 0.9;">Painel Integrado & Diagnóstico Preditivo</div>
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333333; padding-bottom: 10px; margin-bottom: 15px;">
+        <div style="font-family: 'Segoe UI Light', 'Segoe UI', sans-serif; font-size: 28px; font-weight: 300; color: #ffffff;">
+            metro framework <span style="font-size: 16px; color: #00bcf2;">// gestão escolar</span>
+        </div>
+        <div style="font-family: 'Segoe UI', sans-serif; font-size: 15px; color: #666666; letter-spacing: 12px; user-select: none;">
+            _ □ ✕
+        </div>
     </div>
 """, unsafe_allow_html=True)
 
+# ABAS NO ESTILO DA IMAGEM
 tab_financas, tab_alunos, tab_agenda, tab_predicao, tab_bi = st.tabs([
-    "FINANCEIRO",
-    "ALUNOS & PRESENÇA",
-    "AGENDAMENTOS",
-    "DIAGNÓSTICO IA",
-    "BI & DADOS HISTÓRICOS"
+    "Tiles & Finanças",
+    "Alunos & Presença",
+    "Agenda & Opções",
+    "Diagnóstico IA",
+    "BI & Base Histórica"
 ])
 
 # ----------------------------------------------------
-# TAB 1: FINANCEIRO (METRO LIVE TILES)
+# TAB 1: FINANCEIRO (TILES ESTILO METRO FRAMEWORK)
 # ----------------------------------------------------
 with tab_financas:
-    st.markdown("### Visão Geral de Caixa")
+    st.markdown("<br>", unsafe_allow_html=True)
     df_cadastrados = pd.DataFrame(st.session_state.alunos)
 
     if not df_cadastrados.empty:
@@ -380,71 +454,70 @@ with tab_financas:
         total_falta = total_pendente + total_inadimplente
 
         c1, c2, c3, c4 = st.columns(4)
-        c1.markdown(f"""
-            <div class="metro-tile metro-tile-blue">
-                <div style="font-size: 11px; text-transform: uppercase; font-weight: 700;">FATURAMENTO PREVISTO</div>
-                <div style="font-size: 26px; font-weight: 300; margin: 8px 0;">R$ {total_previsto:,.2f}</div>
-                <div style="font-size: 12px; opacity: 0.85;">Total da base</div>
-            </div>
-        """, unsafe_allow_html=True)
+        with c1:
+            st.markdown(f"""
+                <div class="metro-tile-cyan">
+                    <div class="metro-tile-label">Faturamento Previsto</div>
+                    <div class="metro-tile-val">R$ {total_previsto:,.2f}</div>
+                </div>
+            """, unsafe_allow_html=True)
+        with c2:
+            st.markdown(f"""
+                <div class="metro-tile-dark" style="border-left: 3px solid #00bcf2;">
+                    <div class="metro-tile-label">Valor Recebido</div>
+                    <div class="metro-tile-val">R$ {total_pago:,.2f}</div>
+                </div>
+            """, unsafe_allow_html=True)
+        with c3:
+            st.markdown(f"""
+                <div class="metro-tile-dark" style="border-left: 3px solid #d83b01;">
+                    <div class="metro-tile-label">Valor Pendente</div>
+                    <div class="metro-tile-val">R$ {total_falta:,.2f}</div>
+                </div>
+            """, unsafe_allow_html=True)
+        with c4:
+            st.markdown(f"""
+                <div class="metro-tile-dark" style="border-left: 3px solid #e81123;">
+                    <div class="metro-tile-label">Inadimplência Crítica</div>
+                    <div class="metro-tile-val">R$ {total_inadimplente:,.2f}</div>
+                </div>
+            """, unsafe_allow_html=True)
 
-        c2.markdown(f"""
-            <div class="metro-tile metro-tile-green">
-                <div style="font-size: 11px; text-transform: uppercase; font-weight: 700;">VALOR RECEBIDO</div>
-                <div style="font-size: 26px; font-weight: 300; margin: 8px 0;">R$ {total_pago:,.2f}</div>
-                <div style="font-size: 12px; opacity: 0.85;">{(total_pago / total_previsto) * 100:.1f}% liquidado</div>
-            </div>
-        """, unsafe_allow_html=True)
-
-        c3.markdown(f"""
-            <div class="metro-tile metro-tile-orange">
-                <div style="font-size: 11px; text-transform: uppercase; font-weight: 700;">VALOR PENDENTE</div>
-                <div style="font-size: 26px; font-weight: 300; margin: 8px 0;">R$ {total_falta:,.2f}</div>
-                <div style="font-size: 12px; opacity: 0.85;">{(total_falta / total_previsto) * 100:.1f}% em aberto</div>
-            </div>
-        """, unsafe_allow_html=True)
-
-        c4.markdown(f"""
-            <div class="metro-tile metro-tile-red">
-                <div style="font-size: 11px; text-transform: uppercase; font-weight: 700;">INADIMPLÊNCIA CRÍTICA</div>
-                <div style="font-size: 26px; font-weight: 300; margin: 8px 0;">R$ {total_inadimplente:,.2f}</div>
-                <div style="font-size: 12px; opacity: 0.85;">Atrasos confirmados</div>
-            </div>
-        """, unsafe_allow_html=True)
-
-        col_g1, col_g2 = st.columns(2)
-        with col_g1:
+        st.markdown("<br>", unsafe_allow_html=True)
+        cg1, cg2 = st.columns(2)
+        with cg1:
+            st.markdown('<div class="metro-panel"><div class="metro-panel-title">Composição dos Recebimentos</div>', unsafe_allow_html=True)
             fig_status = px.pie(
                 df_cadastrados,
                 names="status_pagamento",
                 values="valor_mensalidade",
-                title="Composição dos Recebimentos",
                 color="status_pagamento",
-                color_discrete_map={"Pago": "#107c41", "Pendente": "#d83b01", "Inadimplente": "#e81123"}
+                color_discrete_map={"Pago": "#00bcf2", "Pendente": "#d83b01", "Inadimplente": "#e81123"}
             )
-            fig_status.update_layout(font_family="Segoe UI")
+            fig_status.update_layout(margin=dict(t=10, b=10, l=10, r=10))
             st.plotly_chart(fig_status, use_container_width=True)
+            st.markdown('</div>', unsafe_allow_html=True)
 
-        with col_g2:
+        with cg2:
+            st.markdown('<div class="metro-panel"><div class="metro-panel-title">Distribuição por Instrumento</div>', unsafe_allow_html=True)
             fig_inst = px.bar(
                 df_cadastrados,
                 x="instrumento",
                 y="valor_mensalidade",
                 color="status_pagamento",
-                title="Receita por Categoria de Instrumento",
                 barmode="group",
-                color_discrete_map={"Pago": "#107c41", "Pendente": "#d83b01", "Inadimplente": "#e81123"}
+                color_discrete_map={"Pago": "#00bcf2", "Pendente": "#d83b01", "Inadimplente": "#e81123"}
             )
-            fig_inst.update_layout(font_family="Segoe UI")
+            fig_inst.update_layout(margin=dict(t=10, b=10, l=10, r=10))
             st.plotly_chart(fig_inst, use_container_width=True)
+            st.markdown('</div>', unsafe_allow_html=True)
 
 # ----------------------------------------------------
-# TAB 2: ALUNOS & PRESENÇA (METRO CARDS + GESTÃO)
+# TAB 2: ALUNOS & PRESENÇA (METRO DARK + HISTÓRICO)
 # ----------------------------------------------------
 with tab_alunos:
-    st.markdown("### Cadastro e Gestão de Presença")
-
-    with st.expander("➕ NOVO CADASTRO DE ALUNO", expanded=False):
+    st.markdown("<br>", unsafe_allow_html=True)
+    with st.expander("➕ NOVO CADASTRO DE ALUNO"):
         with st.form("form_cadastro_aluno", clear_on_submit=True):
             col_a1, col_a2, col_a3 = st.columns(3)
             with col_a1:
@@ -454,8 +527,8 @@ with tab_alunos:
                 faixa_etaria = st.selectbox("FAIXA ETÁRIA", ["Infantil (6-12)", "Jovem (13-17)", "Adulto (18-59)", "Sênior (60+)"])
 
             with col_a2:
-                mensalidade = st.number_input("VALOR DA MENSALIDADE (R$)", min_value=100.0, max_value=2000.0, value=350.0, step=50.0)
-                status_pag = st.selectbox("SITUAÇÃO FINANCEIRA", ["Pago", "Pendente", "Inadimplente"])
+                mensalidade = st.number_input("VALOR MENSALIDADE (R$)", min_value=100.0, max_value=2000.0, value=350.0, step=50.0)
+                status_pag = st.selectbox("STATUS DO PAGAMENTO", ["Pago", "Pendente", "Inadimplente"])
                 aulas_totais = st.number_input("PACOTE TOTAL DE AULAS", min_value=1, max_value=100, value=16)
 
             with col_a3:
@@ -463,7 +536,7 @@ with tab_alunos:
                 tempo_mat = st.number_input("TEMPO DE MATRÍCULA (MESES)", min_value=1, max_value=60, value=1)
                 horas_estudo = st.number_input("ESTUDO SEMANAL (HORAS)", min_value=0.0, max_value=20.0, value=2.5, step=0.5)
 
-            cadastrar = st.form_submit_button("GRAVAR REGISTRO", use_container_width=True)
+            cadastrar = st.form_submit_button("SALVAR REGISTRO", use_container_width=True)
 
             if cadastrar:
                 if nome.strip() and endereco.strip():
@@ -490,9 +563,9 @@ with tab_alunos:
                     st.success(f"Aluno {nome} registrado com sucesso!")
                     st.rerun()
                 else:
-                    st.error("Preencha os campos obrigatórios (Nome e Endereço).")
+                    st.error("Preencha ao menos Nome e Endereço.")
 
-    st.markdown("### Alunos Matriculados")
+    st.markdown("### Ficha de Alunos")
     for aluno in st.session_state.alunos:
         if "historico_aulas" not in aluno:
             aluno["historico_aulas"] = [{"id": i + 1, "data": str(hoje)} for i in range(aluno.get("aulas_feitas", 0))]
@@ -514,22 +587,20 @@ with tab_alunos:
             "Faixa_Etaria": aluno["faixa_etaria"]
         }
         risco_aluno = predizer_risco_aluno(dados_inferencia)
+        cor_borda = "#00bcf2" if risco_aluno < 35 else ("#d83b01" if risco_aluno < 65 else "#e81123")
 
-        borda_cor = "#107c41" if risco_aluno < 35 else ("#d83b01" if risco_aluno < 65 else "#e81123")
-
-        st.markdown(f'<div class="metro-card" style="border-left: 6px solid {borda_cor};">', unsafe_allow_html=True)
+        st.markdown(f'<div class="metro-panel" style="border-left: 4px solid {cor_borda};">', unsafe_allow_html=True)
         c_info1, c_info2, c_info3, c_info4 = st.columns([3, 2, 2.5, 2])
-        
         with c_info1:
-            st.markdown(f"### {aluno['nome']}")
-            st.markdown(f"**Instrumento:** {aluno['instrumento']} | **Grupo:** {aluno['faixa_etaria']}")
+            st.markdown(f"#### {aluno['nome']}")
+            st.write(f"🎵 **{aluno['instrumento']}** | `{aluno['faixa_etaria']}`")
             st.caption(f"📍 {aluno['endereco']}")
             if risco_aluno < 35:
-                st.markdown(f"<span style='background-color: #107c41; color: white; padding: 2px 8px; font-size: 12px; font-weight: 600;'>RISCO BAIXO: {risco_aluno:.1f}%</span>", unsafe_allow_html=True)
+                st.markdown(f"<span style='color: #00bcf2; font-weight: 600;'>RISCO BAIXO: {risco_aluno:.1f}%</span>", unsafe_allow_html=True)
             elif risco_aluno < 65:
-                st.markdown(f"<span style='background-color: #d83b01; color: white; padding: 2px 8px; font-size: 12px; font-weight: 600;'>RISCO MODERADO: {risco_aluno:.1f}%</span>", unsafe_allow_html=True)
+                st.markdown(f"<span style='color: #d83b01; font-weight: 600;'>RISCO MODERADO: {risco_aluno:.1f}%</span>", unsafe_allow_html=True)
             else:
-                st.markdown(f"<span style='background-color: #e81123; color: white; padding: 2px 8px; font-size: 12px; font-weight: 600;'>RISCO CRÍTICO: {risco_aluno:.1f}%</span>", unsafe_allow_html=True)
+                st.markdown(f"<span style='color: #e81123; font-weight: 600;'>RISCO CRÍTICO: {risco_aluno:.1f}%</span>", unsafe_allow_html=True)
 
         with c_info2:
             st.write(f"**Mensalidade:** R$ {aluno['valor_mensalidade']:.2f}")
@@ -545,7 +616,7 @@ with tab_alunos:
                 st.rerun()
 
         with c_info3:
-            st.write(f"**Aulas Feitas:** {aluno['aulas_feitas']} / {aluno['aulas_totais']}")
+            st.write(f"**Aulas Feitas:** {aluno['aulas_feitas']} / {aluno['aulas_totais']} total")
             st.write(f"**Restantes:** {aulas_a_fazer} aulas")
             st.progress(pct_concluido)
 
@@ -555,37 +626,37 @@ with tab_alunos:
                 if aluno["aulas_feitas"] < aluno["aulas_totais"]:
                     novo_id_h = max([h["id"] for h in aluno["historico_aulas"]], default=0) + 1
                     aluno["historico_aulas"].append({"id": novo_id_h, "data": str(hoje)})
-                    st.success("Presença gravada com sucesso.")
+                    st.success("Presença de hoje confirmada!")
                     st.rerun()
                 else:
-                    st.info("Pacote de aulas preenchido.")
+                    st.info("Pacote de aulas concluído.")
 
         # HISTÓRICO EXPANSÍVEL
-        with st.expander(f"HISTÓRICO E GESTÃO DE DATAS ({len(aluno['historico_aulas'])} aulas)"):
-            st.markdown("##### 📌 Agendar/Marcar Data Retroativa ou Nova")
-            col_n1, col_n2 = st.columns([3, 1])
+        with st.expander(f"📅 HISTÓRICO DE AULAS ({len(aluno['historico_aulas'])} aulas registradas)"):
+            st.markdown("##### 📌 Marcar Outro Dia / Retroativo")
+            col_n1, col_n2 = st.columns([3, 1.5])
             with col_n1:
                 data_marcar = st.date_input(
-                    "Data da Realização",
+                    "Data da Aula Concluída",
                     value=hoje,
                     key=f"data_marcar_{aluno['id']}"
                 )
             with col_n2:
                 st.write("")
                 st.write("")
-                if st.button("➕ ADICIONAR DATA", key=f"btn_marcar_data_{aluno['id']}", use_container_width=True):
+                if st.button("➕ REGISTRAR DATA", key=f"btn_marcar_data_{aluno['id']}", use_container_width=True):
                     if aluno["aulas_feitas"] < aluno["aulas_totais"]:
                         novo_id_h = max([h["id"] for h in aluno["historico_aulas"]], default=0) + 1
                         aluno["historico_aulas"].append({"id": novo_id_h, "data": str(data_marcar)})
-                        st.success("Data incluída no histórico!")
+                        st.success("Data adicionada com sucesso!")
                         st.rerun()
                     else:
-                        st.warning("Limite do pacote atingido.")
+                        st.warning("Limite total de aulas já atingido.")
 
-            st.markdown("##### 📋 Histórico Registrado")
+            st.markdown("##### 📋 Gerenciar e Editar Datas")
             if aluno["historico_aulas"]:
                 for idx, aula_reg in enumerate(aluno["historico_aulas"]):
-                    col_h1, col_h2, col_h3, col_h4 = st.columns([1, 2, 1.2, 1])
+                    col_h1, col_h2, col_h3, col_h4 = st.columns([1, 2, 1.2, 1.2])
                     with col_h1:
                         st.write(f"**Aula #{idx+1}**")
                     with col_h2:
@@ -600,37 +671,31 @@ with tab_alunos:
                             label_visibility="collapsed"
                         )
                     with col_h3:
-                        if st.button("ALTERAR", key=f"btn_alt_{aluno['id']}_{aula_reg['id']}", use_container_width=True):
+                        if st.button("💾 ALTERAR", key=f"btn_alt_{aluno['id']}_{aula_reg['id']}", use_container_width=True):
                             aula_reg["data"] = str(nova_data_edit)
-                            st.success("Data modificada!")
+                            st.success("Data alterada!")
                             st.rerun()
                     with col_h4:
-                        if st.button("EXCLUIR", key=f"btn_del_{aluno['id']}_{aula_reg['id']}", use_container_width=True):
+                        if st.button("🗑️ EXCLUIR", key=f"btn_del_{aluno['id']}_{aula_reg['id']}", use_container_width=True):
                             aluno["historico_aulas"].remove(aula_reg)
                             st.rerun()
             else:
-                st.info("Nenhum histórico registrado até o momento.")
-                
+                st.info("Nenhuma aula realizada até o momento.")
         st.markdown('</div>', unsafe_allow_html=True)
 
 # ----------------------------------------------------
-# TAB 3: AGENDAMENTOS (METRO AGENDA)
+# TAB 3: AGENDAMENTOS (METRO OPTIONS)
 # ----------------------------------------------------
 with tab_agenda:
-    st.markdown("### Grade de Horários")
+    st.markdown("<br>", unsafe_allow_html=True)
     col_ag1, col_ag2 = st.columns([1.2, 2])
 
     with col_ag1:
-        st.markdown("""
-            <div style="background-color: #0078d7; color: white; padding: 10px 15px; font-weight: 600; font-size: 13px;">
-                MARCAR NOVO HORÁRIO
-            </div>
-        """, unsafe_allow_html=True)
-        st.markdown('<div class="metro-card" style="border-top: none;">', unsafe_allow_html=True)
+        st.markdown('<div class="metro-panel"><div class="metro-panel-title">Marcar Novo Horário</div>', unsafe_allow_html=True)
         lista_nomes = [a["nome"] for a in st.session_state.alunos]
         if lista_nomes:
             aluno_agenda = st.selectbox("ALUNO", lista_nomes, key="ag_aluno")
-            data_sel = st.date_input("DATA DA SESSÃO", min_value=hoje, key="ag_data")
+            data_sel = st.date_input("DATA", min_value=hoje, key="ag_data")
             hora_sel = st.time_input("HORÁRIO", value=time(14, 0), key="ag_hora")
 
             if st.button("CONFIRMAR AGENDAMENTO", key="btn_confirmar_ag", use_container_width=True):
@@ -646,22 +711,17 @@ with tab_agenda:
                 st.success("Aula confirmada no calendário!")
                 st.rerun()
         else:
-            st.warning("Nenhum aluno cadastrado.")
+            st.warning("Cadastre alunos primeiro.")
         st.markdown('</div>', unsafe_allow_html=True)
 
     with col_ag2:
-        st.markdown("""
-            <div style="background-color: #2b2b2b; color: white; padding: 10px 15px; font-weight: 600; font-size: 13px;">
-                AULAS PROGRAMADAS
-            </div>
-        """, unsafe_allow_html=True)
+        st.markdown('<div class="metro-panel"><div class="metro-panel-title">Sessões Agendadas</div>', unsafe_allow_html=True)
         for ag in st.session_state.agenda:
-            st.markdown('<div class="metro-card">', unsafe_allow_html=True)
-            ca1, ca2, ca3 = st.columns([3, 2, 2])
-            ca1.markdown(f"**{ag['aluno']}** (`{ag['instrumento']}`)")
-            ca2.markdown(f"🗓️ {ag['data']} às {ag['horario']}")
+            c1, c2, c3 = st.columns([3, 2, 2])
+            c1.markdown(f"**{ag['aluno']}** (`{ag['instrumento']}`)")
+            c2.markdown(f"🗓️ {ag['data']} às {ag['horario']}")
             if ag["status"] == "Agendada":
-                if ca3.button("CONCLUIR", key=f"btn_done_{ag['id']}", use_container_width=True):
+                if c3.button("CONCLUIR", key=f"btn_done_{ag['id']}", use_container_width=True):
                     ag["status"] = "Realizada"
                     for al in st.session_state.alunos:
                         if al["nome"] == ag["aluno"] and al["aulas_feitas"] < al["aulas_totais"]:
@@ -671,19 +731,20 @@ with tab_agenda:
                             al["historico_aulas"].append({"id": novo_id_h, "data": str(ag["data"])})
                     st.rerun()
             else:
-                ca3.markdown("<span style='color: #107c41; font-weight: 700;'>✔ CONCLUÍDA</span>", unsafe_allow_html=True)
-            st.markdown('</div>', unsafe_allow_html=True)
+                c3.markdown("<span style='color: #00bcf2; font-weight: 600;'>✔ CONCLUÍDA</span>", unsafe_allow_html=True)
+            st.divider()
+        st.markdown('</div>', unsafe_allow_html=True)
 
 # ----------------------------------------------------
 # TAB 4: DIAGNÓSTICO IA
 # ----------------------------------------------------
 with tab_predicao:
-    st.markdown("### Motor Preditivo de Evasão")
-    origem = st.radio("SELECIONE O MODO DE OPERAÇÃO:", ["Carregar Aluno Cadastrado", "Simulação Manual"], horizontal=True)
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown('<div class="metro-panel"><div class="metro-panel-title">Diagnóstico Preditivo de Evasão (Machine Learning)</div>', unsafe_allow_html=True)
+    origem = st.radio("SELECIONE O MODO:", ["Carregar Aluno Cadastrado", "Simulação Manual"], horizontal=True)
 
-    st.markdown('<div class="metro-card">', unsafe_allow_html=True)
     if origem == "Carregar Aluno Cadastrado" and st.session_state.alunos:
-        aluno_nome = st.selectbox("ALUNO REGISTRADO", [a["nome"] for a in st.session_state.alunos], key="sel_aluno_pred")
+        aluno_nome = st.selectbox("ALUNO CADASTRADO", [a["nome"] for a in st.session_state.alunos], key="sel_aluno_pred")
         aluno_selecionado = next(a for a in st.session_state.alunos if a["nome"] == aluno_nome)
 
         val_inst = aluno_selecionado["instrumento"]
@@ -723,88 +784,82 @@ with tab_predicao:
         }
 
         probabilidade = predizer_risco_aluno(input_dict)
-
         st.markdown("<br>", unsafe_allow_html=True)
         col_res1, col_res2 = st.columns([1.2, 2])
         with col_res1:
             if probabilidade < 35:
                 st.markdown(f"""
-                    <div class="metro-tile metro-tile-green">
-                        <div style="font-size: 11px; text-transform: uppercase;">STATUS DO ALUNO</div>
-                        <div style="font-size: 28px; font-weight: 300;">{probabilidade:.1f}%</div>
-                        <div style="font-size: 13px;">Baixa probabilidade de evasão</div>
+                    <div class="metro-tile-cyan">
+                        <div class="metro-tile-label">Probabilidade de Evasão</div>
+                        <div class="metro-tile-val">{probabilidade:.1f}% (Baixo)</div>
                     </div>
                 """, unsafe_allow_html=True)
             elif probabilidade < 65:
                 st.markdown(f"""
-                    <div class="metro-tile metro-tile-orange">
-                        <div style="font-size: 11px; text-transform: uppercase;">STATUS DO ALUNO</div>
-                        <div style="font-size: 28px; font-weight: 300;">{probabilidade:.1f}%</div>
-                        <div style="font-size: 13px;">Risco Moderado</div>
+                    <div class="metro-tile-dark" style="border-left: 3px solid #d83b01;">
+                        <div class="metro-tile-label">Probabilidade de Evasão</div>
+                        <div class="metro-tile-val">{probabilidade:.1f}% (Moderado)</div>
                     </div>
                 """, unsafe_allow_html=True)
             else:
                 st.markdown(f"""
-                    <div class="metro-tile metro-tile-red">
-                        <div style="font-size: 11px; text-transform: uppercase;">STATUS DO ALUNO</div>
-                        <div style="font-size: 28px; font-weight: 300;">{probabilidade:.1f}%</div>
-                        <div style="font-size: 13px;">Risco Crítico de Evasão</div>
+                    <div class="metro-tile-dark" style="border-left: 3px solid #e81123;">
+                        <div class="metro-tile-label">Probabilidade de Evasão</div>
+                        <div class="metro-tile-val">{probabilidade:.1f}% (Crítico)</div>
                     </div>
                 """, unsafe_allow_html=True)
 
         with col_res2:
             if probabilidade >= 50:
-                st.warning("Ação Recomendada: Realizar contato preventivo com a coordenação pedagógica, flexibilizar cobranças ou reavaliar o ritmo de aprendizado.")
+                st.warning("Ação Recomendada: Realizar contato ativo com a coordenação e renegociação preventiva.")
             else:
-                st.success("Ação Recomendada: Aluno com adesão satisfatória. Manter planejamento e plano de aulas atual.")
+                st.success("Ação Recomendada: Aluno com adesão saudável. Manter o plano de estudos.")
     st.markdown('</div>', unsafe_allow_html=True)
 
 # ----------------------------------------------------
-# TAB 5: BI & DADOS HISTÓRICOS
+# TAB 5: BI & BASE HISTÓRICA
 # ----------------------------------------------------
 with tab_bi:
-    st.markdown("### Painel de Inteligência de Negócio")
-
-    kb1, kb2, kb3 = st.columns(3)
-    kb1.markdown(f"""
-        <div class="metro-tile metro-tile-teal">
-            <div style="font-size: 11px; text-transform: uppercase; font-weight: 700;">AMOSTRAS HISTÓRICAS</div>
-            <div style="font-size: 28px; font-weight: 300; margin: 5px 0;">{len(df_historico)}</div>
-            <div style="font-size: 12px; opacity: 0.85;">Registros de calibração</div>
-        </div>
-    """, unsafe_allow_html=True)
-
-    kb2.markdown(f"""
-        <div class="metro-tile metro-tile-purple">
-            <div style="font-size: 11px; text-transform: uppercase; font-weight: 700;">ACURÁCIA IA</div>
-            <div style="font-size: 28px; font-weight: 300; margin: 5px 0;">{acuracia_ia * 100:.1f}%</div>
-            <div style="font-size: 12px; opacity: 0.85;">Random Forest Classifier</div>
-        </div>
-    """, unsafe_allow_html=True)
-
-    kb3.markdown(f"""
-        <div class="metro-tile metro-tile-blue">
-            <div style="font-size: 11px; text-transform: uppercase; font-weight: 700;">TAXA DE EVASÃO BASE</div>
-            <div style="font-size: 28px; font-weight: 300; margin: 5px 0;">{(df_historico['Evasao'].mean() * 100):.1f}%</div>
-            <div style="font-size: 12px; opacity: 0.85;">Média da série histórica</div>
-        </div>
-    """, unsafe_allow_html=True)
+    st.markdown("<br>", unsafe_allow_html=True)
+    k1, k2, k3 = st.columns(3)
+    with k1:
+        st.markdown(f"""
+            <div class="metro-tile-dark" style="border-left: 3px solid #00bcf2;">
+                <div class="metro-tile-label">Amostras Históricas</div>
+                <div class="metro-tile-val">{len(df_historico)}</div>
+            </div>
+        """, unsafe_allow_html=True)
+    with k2:
+        st.markdown(f"""
+            <div class="metro-tile-cyan">
+                <div class="metro-tile-label">Acurácia Random Forest</div>
+                <div class="metro-tile-val">{acuracia_ia * 100:.1f}%</div>
+            </div>
+        """, unsafe_allow_html=True)
+    with k3:
+        st.markdown(f"""
+            <div class="metro-tile-dark" style="border-left: 3px solid #e81123;">
+                <div class="metro-tile-label">Taxa Global de Evasão</div>
+                <div class="metro-tile-val">{(df_historico['Evasao'].mean() * 100):.1f}%</div>
+            </div>
+        """, unsafe_allow_html=True)
 
     col_bi1, col_bi2 = st.columns(2)
     with col_bi1:
+        st.markdown('<div class="metro-panel"><div class="metro-panel-title">Frequência vs Evasão</div>', unsafe_allow_html=True)
         fig_hist_freq = px.histogram(
             df_historico,
             x="Taxa_Frequencia_Pct",
             color=df_historico["Evasao"].map({0: "Ativo", 1: "Evadido"}),
             barmode="overlay",
-            title="Distribuição de Frequência x Status de Evasão",
-            color_discrete_map={"Ativo": "#0078d7", "Evadido": "#e81123"},
-            labels={"Taxa_Frequencia_Pct": "Frequência (%)", "color": "Status"}
+            color_discrete_map={"Ativo": "#00bcf2", "Evadido": "#e81123"}
         )
-        fig_hist_freq.update_layout(font_family="Segoe UI")
+        fig_hist_freq.update_layout(margin=dict(t=10, b=10, l=10, r=10))
         st.plotly_chart(fig_hist_freq, use_container_width=True)
+        st.markdown('</div>', unsafe_allow_html=True)
 
     with col_bi2:
+        st.markdown('<div class="metro-panel"><div class="metro-panel-title">Importância das Variáveis (IA)</div>', unsafe_allow_html=True)
         importancias = pd.DataFrame({
             "Variável": colunas_modelo,
             "Importância": modelo_ia.feature_importances_
@@ -815,11 +870,12 @@ with tab_bi:
             x="Importância",
             y="Variável",
             orientation="h",
-            title="Importância dos Fatores de Decisão (IA)",
-            color_discrete_sequence=["#008272"]
+            color_discrete_sequence=["#00bcf2"]
         )
-        fig_imp.update_layout(font_family="Segoe UI")
+        fig_imp.update_layout(margin=dict(t=10, b=10, l=10, r=10))
         st.plotly_chart(fig_imp, use_container_width=True)
+        st.markdown('</div>', unsafe_allow_html=True)
 
-    st.markdown("#### Amostra da Base de Dados")
+    st.markdown('<div class="metro-panel"><div class="metro-panel-title">Amostra da Base de Dados</div>', unsafe_allow_html=True)
     st.dataframe(df_historico.head(50), use_container_width=True)
+    st.markdown('</div>', unsafe_allow_html=True)
