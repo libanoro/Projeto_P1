@@ -217,8 +217,7 @@ tab_financas, tab_alunos, tab_agenda, tab_predicao, tab_bi = st.tabs([
     "👥 Alunos & Presença",
     "📅 Agendamentos",
     "🧠 Diagnóstico IA",
-    "📊 BI & Dados Históricos"
-])
+    ])
 
 # ----------------------------------------------------
 # ABA FINANCEIRO
